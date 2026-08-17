@@ -1,0 +1,24 @@
+/**********************************************************************
+ * @file       signal_id_map.h
+ * @brief      自动生成的信号枚举与 signID 映射，请勿手工修改
+ * @version    V1.0.0
+ * @date       <%~ it.date %>
+ * @author     Ryan
+ * Copyright   1997-2030 SUNGROW.All Rights Reserved.
+ ***********************************************************************/
+#ifndef SIGNAL_ID_MAP_H
+#define SIGNAL_ID_MAP_H
+
+#include "pub_sig_def.h"
+
+typedef enum {
+<% it.localRows.forEach((row) => { %>    /* <%~ row.description %>（UPM单板测点第 <%~ row.excelRow %> 行） */
+    <%~ row.name %> = <%~ row.value %>,
+<% }) %>} LOCAL_SIGNAL_ID_E;
+
+typedef enum {
+<% it.dspRows.forEach((row) => { %>    /* <%~ row.description %>（UPM-DSP采集数据第 <%~ row.excelRow %> 行） */
+    <%~ row.name %> = <%~ row.value %>,
+<% }) %>} DSP_SIGNAL_ID_E;
+
+#endif /* SIGNAL_ID_MAP_H */

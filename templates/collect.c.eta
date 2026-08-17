@@ -1,0 +1,62 @@
+/**********************************************************************
+ * @file       collect.c
+ * @brief      自动生成的 DSP UPP 采集表，请勿手工修改
+ * @version    V1.0.0
+ * @date       <%~ it.date %>
+ * @author     Ryan
+ * Copyright   1997-2030 SUNGROW.All Rights Reserved.
+ ***********************************************************************/
+#include "arc_byte_order.h"
+#include "arc_public.h"
+#include "data_process.h"
+#include "port.h"
+#include "collect_lib.h"
+#include "transmit_lib.h"
+#include "local_equip.h"
+#include "dev_cfg.h"
+#include "upp_m_ex.h"
+#include "upp_public_ex.h"
+#include "signal_id_map.h"
+
+#define UPP_S_BYTE_ORDER_BIG       PUB_BYTE_ORDER_BIG
+
+#define TO_SG_ADDR(vendor_addr)            ((vendor_addr) + 1)
+#define TO_LAST_U16_SG_ADDR(vendor_addr)   ((TO_SG_ADDR(vendor_addr)) + 1)
+#define TO_FIRST_U16_SG_ADDR(vendor_addr)  ((TO_SG_ADDR(vendor_addr)))
+
+<% it.groups.forEach((group) => { %>
+const UPP_M_MOD_DATA g_dsp_upp_collect_<%~ group.modelId %>[] = {
+<% group.rows.forEach((row) => { %>
+    /* <%~ row.description %>（Excel 第 <%~ row.excelRow %> 行） */
+    {
+        .mod_data_offset = <%~ row.offset %>, .mod_data_len = <%~ row.dataLength %>, .mod_data_type = <%~ row.dataType %>,
+        .data_len = <%~ row.dataLength %>, .data_type = <%~ row.dataType %>, .sig_id = <%~ row.sigId %>,
+        .rw_mode = <%~ row.rwMode %>, .byte_order = UPP_S_BYTE_ORDER_BIG, .set_pri = <%~ row.setPriority %>, .scan_pri = <%~ row.scanPriority %>,
+        .rqst_cyl = (<%~ row.requestCycle %>), .dec_p = <%~ row.precision %>
+    },
+<% }) %>
+};
+
+<% }) %>
+#define GET_ARRAY_SIZE(num) (sizeof(g_dsp_upp_collect_##num) / sizeof(g_dsp_upp_collect_##num[0]))
+
+#define g_dsp_upp_collect_sig_num \
+<% it.groups.forEach((group) => { %>    GET_ARRAY_SIZE(<%~ group.modelId %>) + \
+<% }) %>    (0)
+
+#define INIT_UPP_MOD_DATA(num) \
+{ \
+    .p_data = (UPP_M_MOD_DATA*)g_dsp_upp_collect_##num, \
+    .data_num = sizeof(g_dsp_upp_collect_##num) / sizeof(g_dsp_upp_collect_##num[0]), \
+    .mod_id = num \
+}
+
+const UPP_M_MOD g_dsp_upp_collect[] = {
+<% it.groups.forEach((group) => { %>    INIT_UPP_MOD_DATA(<%~ group.modelId %>),
+<% }) %>};
+
+const UPP_M_MOD_REG g_dsp_upp_collect_table = {
+    .p_model_ary = (UPP_M_MOD*)g_dsp_upp_collect,
+    .model_num = sizeof(g_dsp_upp_collect) / sizeof(g_dsp_upp_collect[0]),
+    .cfg_mode = UPP_CFG_MOD_DATAID
+};

@@ -1,0 +1,39 @@
+/**********************************************************************
+ * @file       process.c
+ * @brief      自动生成的信号处理表，请勿手工修改
+ * @version    V1.0.0
+ * @date       <%~ it.date %>
+ * @author     Ryan
+ * Copyright   1997-2030 SUNGROW.All Rights Reserved.
+ ***********************************************************************/
+#include "globalfunction.h"
+#include "pub_sig_def.h"
+#include "redirect_lib.h"
+#include "dsp_init.h"
+#include "signal_id_map.h"
+
+const DM_SIG_CFG_S g_arm_data_table[] = {
+<% it.armRows.forEach((row) => { %>    /* <%~ row.description %>  <%~ row.enumName %>（Excel 第 <%~ row.excelRow %> 行） */
+    {.sig_id = <%~ row.sigId %>, .sig_size = <%~ row.sigSize %>, .sig_flag = (<%~ row.sigFlag %>),
+     .data_type = <%~ row.dataType %>, .pf_sig_proc = <%~ row.callback %>},
+<% }) %>};
+
+const DM_SIG_CFG_S g_dsp_data_table[] = {
+<% it.dspRows.forEach((row) => { %>    /* <%~ row.description %>  <%~ row.enumName %>（Excel 第 <%~ row.excelRow %> 行） */
+    {.sig_id = <%~ row.sigId %>, .sig_size = <%~ row.sigSize %>, .sig_flag = (<%~ row.sigFlag %>),
+     .data_type = <%~ row.dataType %>, .pf_sig_proc = <%~ row.callback %>},
+<% }) %>};
+
+UINT16 get_g_arm_data_table_len(void)
+{
+    UINT16 table_length = 0;
+    table_length = ITEM_OF(g_arm_data_table);
+    return table_length;
+}
+
+UINT16 get_g_dsp_data_table_len(void)
+{
+    UINT16 table_length = 0;
+    table_length = ITEM_OF(g_dsp_data_table);
+    return table_length;
+}

@@ -1,0 +1,37 @@
+/**********************************************************************
+ * @file       transmit.c
+ * @brief      自动生成的 Modbus 转发表，请勿手工修改
+ * @version    V1.0.0
+ * @date       <%~ it.date %>
+ * @author     Ryan
+ * Copyright   1997-2030 SUNGROW.All Rights Reserved.
+ ***********************************************************************/
+#include "arc_public.h"
+#include "data_process.h"
+#include "port.h"
+#include "collect_lib.h"
+#include "transmit_lib.h"
+#include "local_equip.h"
+#include "dev_cfg.h"
+#include "pub_sig_def.h"
+#include "signal_id_map.h"
+
+const MB_TABLE_CELL_T g_arm_transmit_table_t[] = {
+<% it.rows.forEach((row) => { %>    /* <%~ row.description %>（Excel 第 <%~ row.excelRow %> 行） */
+    {.dev_id = <%~ row.deviceId %>, .sig_id = <%~ row.sigId %>, .reg_type = <%~ row.registerType %>,
+     .reg_addr = <%~ row.registerAddress %>, .reg_num = <%~ row.registerLength %>},
+<% }) %>};
+
+UINT16 get_g_arm_transmit_table_t_len(void)
+{
+    UINT16 table_length = 0;
+    table_length = ITEM_OF(g_arm_transmit_table_t);
+    return table_length;
+}
+
+UINT16 get_arm_transmit_tab_len(void)
+{
+    UINT16 table_length = 0;
+    table_length = ITEM_OF(g_arm_transmit_table_t);
+    return table_length;
+}

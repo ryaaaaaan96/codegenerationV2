@@ -54,11 +54,8 @@ output/signal_id_map.h
 | `DSP内部数据` | DSP 内部使用和管理的数据 | DSP 内部数据 | DSP 开发人员、ARM-DSP 通讯负责人 | DSP 开发人员、ARM-DSP 通讯负责人 | 源数据 |
 | `UPM-DSP手动配置数据` | UPM ARM 板卡内部使用的手动配置数据 | ARM 内部数据 | ARM 开发人员 | ARM 开发人员 | 源数据 |
 | `UPM-DSP采集数据` | UPM ARM 板卡与 DSP 之间的通信协议数据 | ARM ↔ DSP 通信数据 | ARM-DSP 通讯负责人 | ARM 开发人员、DSP 通信开发人员 | 通信协议数据 |
-| `UPM-DSP转发数据` | UPM ARM 板卡对外进行 Modbus 转发的数据，仅包含 DSP 部分 | DSP 对外转发部分 | ARM 开发人员 | ARM 开发人员 | 中间文件 |
 | `UPM单板测点` | UPM ARM 板卡对外进行 Modbus 转发的数据，仅包含 ARM 自身部分 | ARM 自身对外数据 | ARM 开发人员 | ARM 开发人员 | 中间文件 |
-| `iconfig使用` | UPM ARM 板卡最终对外提供的 Modbus 通信总表，由 DSP 转发数据和 UPM 单板测点汇总形成 | ARM + DSP 完整 Modbus 数据 | ARM 开发人员 | 所有需要使用 Modbus 进行开发的人员 | 最终发布/使用文件 |
-
-当前下载的工作簿中，DSP 转发表的实际名称是 `UPM-DSP转发数据（废弃，用于调试）`。该表保留作调试参考，部分旧公式已经出现 `#REF!`，Node.js 脚本不会读取它。当前 `iconfig使用` 的公式直接从 `UPM-DSP采集数据` 生成 DSP 部分，再与 `UPM单板测点` 的 ARM 部分汇总。业务定位仍然可以理解为“DSP 转发部分 + ARM 自身部分 = 最终 Modbus 总表”。
+| `iconfig使用` | UPM ARM 板卡最终对外提供的 Modbus 通信总表，由 UPM-DSP采集数据和 UPM单板测点直接汇总形成 | ARM + DSP 完整 Modbus 数据 | ARM 开发人员 | 所有需要使用 Modbus 进行开发的人员 | 最终发布/使用文件 |
 
 ### 2.2 整体数据链路
 
@@ -70,11 +67,9 @@ DSP内部数据
      │ DSP 相关数据
      ▼
 UPM-DSP采集数据
-     │
-     │ ARM 与 DSP 通信
-     ▼
-DSP 对外转发部分 ───────────────┐
-                               │
+     │                         │
+     │ ARM 与 DSP 通信数据     │
+     └─────────────────────────┤
                                ├──→ iconfig使用
                                │     （最终 Modbus 总表）
 UPM单板测点 ───────────────────┘
@@ -90,7 +85,7 @@ UPM-DSP手动配置数据
      └── ARM 内部配置使用，并为需要上传 CSU 的 DSP 测点补充配置
 ```
 
-简单来说：DSP 对外转发部分负责 DSP 数据，`UPM单板测点` 负责 ARM 自身数据，最终汇总到 `iconfig使用`，供所有需要进行 Modbus 开发的人员使用。
+简单来说：`UPM-DSP采集数据` 提供 DSP 数据，`UPM单板测点` 提供 ARM 自身数据，两部分直接汇总到 `iconfig使用`，供所有需要进行 Modbus 开发的人员使用。
 
 ## 3. 环境准备与基本使用
 

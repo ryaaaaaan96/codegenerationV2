@@ -2,7 +2,7 @@
  * @file       signal_id_map.h
  * @brief      自动生成的信号枚举与 signID 映射，请勿手工修改
  * @version    V1.0.0
- * @date       2026/8/17
+ * @date       2026/8/27
  * @author     Ryan
  * Copyright   1997-2030 SUNGROW.All Rights Reserved.
  ***********************************************************************/
@@ -185,39 +185,39 @@ typedef enum {
     /* 单包广播报文连续发送的次数（UPM单板测点第 89 行） */
     LOCAL_SIG_DEV_BRD_SEND_CNT = SIGID_DEV_BRD_SEND_CNT,
     /* 未绑定的DSP数量（UPM单板测点第 90 行） */
-    LOCAL_SIG_NOT_BOUND_DSP_NUM = SIGID_NOT_BOUND_DSP_NUM,
+    LOCAL_SIG_NOT_BOUND_DSP_NUM = 329,
     /* DSP设备SN数据池-SN1（UPM单板测点第 91 行） */
-    LOCAL_SIG_DSP_DEV_SN_1 = SIGID_DSP_DEV_SN_1,
+    LOCAL_SIG_DSP_DEV_SN_1 = 330,
     /* DSP设备SN数据池-SN2（UPM单板测点第 92 行） */
-    LOCAL_SIG_DSP_DEV_SN_2 = SIGID_DSP_DEV_SN_2,
+    LOCAL_SIG_DSP_DEV_SN_2 = 331,
     /* DSP设备SN数据池-SN3（UPM单板测点第 93 行） */
-    LOCAL_SIG_DSP_DEV_SN_3 = SIGID_DSP_DEV_SN_3,
+    LOCAL_SIG_DSP_DEV_SN_3 = 332,
     /* DSP设备SN数据池-SN4（UPM单板测点第 94 行） */
-    LOCAL_SIG_DSP_DEV_SN_4 = SIGID_DSP_DEV_SN_4,
+    LOCAL_SIG_DSP_DEV_SN_4 = 333,
     /* DSP设备SN数据池-SN5（UPM单板测点第 95 行） */
-    LOCAL_SIG_DSP_DEV_SN_5 = SIGID_DSP_DEV_SN_5,
+    LOCAL_SIG_DSP_DEV_SN_5 = 334,
     /* DSP设备SN数据池-SN6（UPM单板测点第 96 行） */
-    LOCAL_SIG_DSP_DEV_SN_6 = SIGID_DSP_DEV_SN_6,
+    LOCAL_SIG_DSP_DEV_SN_6 = 335,
     /* DSP设备SN数据池-SN7（UPM单板测点第 97 行） */
-    LOCAL_SIG_DSP_DEV_SN_7 = SIGID_DSP_DEV_SN_7,
+    LOCAL_SIG_DSP_DEV_SN_7 = 336,
     /* DSP设备SN数据池-SN8（UPM单板测点第 98 行） */
-    LOCAL_SIG_DSP_DEV_SN_8 = SIGID_DSP_DEV_SN_8,
+    LOCAL_SIG_DSP_DEV_SN_8 = 337,
     /* DSP设备SN数据池-SN9（UPM单板测点第 99 行） */
-    LOCAL_SIG_DSP_DEV_SN_9 = SIGID_DSP_DEV_SN_9,
+    LOCAL_SIG_DSP_DEV_SN_9 = 338,
     /* DSP设备SN数据池-SN10（UPM单板测点第 100 行） */
-    LOCAL_SIG_DSP_DEV_SN_10 = SIGID_DSP_DEV_SN_10,
+    LOCAL_SIG_DSP_DEV_SN_10 = 339,
     /* DSP设备SN数据池-SN11（UPM单板测点第 101 行） */
-    LOCAL_SIG_DSP_DEV_SN_11 = SIGID_DSP_DEV_SN_11,
+    LOCAL_SIG_DSP_DEV_SN_11 = 340,
     /* DSP设备SN数据池-SN12（UPM单板测点第 102 行） */
-    LOCAL_SIG_DSP_DEV_SN_12 = SIGID_DSP_DEV_SN_12,
+    LOCAL_SIG_DSP_DEV_SN_12 = 341,
     /* DSP设备SN数据池-SN13（UPM单板测点第 103 行） */
-    LOCAL_SIG_DSP_DEV_SN_13 = SIGID_DSP_DEV_SN_13,
+    LOCAL_SIG_DSP_DEV_SN_13 = 342,
     /* DSP设备SN数据池-SN14（UPM单板测点第 104 行） */
-    LOCAL_SIG_DSP_DEV_SN_14 = SIGID_DSP_DEV_SN_14,
+    LOCAL_SIG_DSP_DEV_SN_14 = 343,
     /* DSP设备SN数据池-SN15（UPM单板测点第 105 行） */
-    LOCAL_SIG_DSP_DEV_SN_15 = SIGID_DSP_DEV_SN_15,
+    LOCAL_SIG_DSP_DEV_SN_15 = 344,
     /* DSP设备SN数据池-SN16（UPM单板测点第 106 行） */
-    LOCAL_SIG_DSP_DEV_SN_16 = SIGID_DSP_DEV_SN_16,
+    LOCAL_SIG_DSP_DEV_SN_16 = 345,
     /* AES iv 值（UPM单板测点第 107 行） */
     LOCAL_SIG_275 = 275,
     /* 转发接收到增量报文标记（UPM单板测点第 108 行） */

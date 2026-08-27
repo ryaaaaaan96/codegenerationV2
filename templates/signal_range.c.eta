@@ -1,0 +1,178 @@
+/**********************************************************************
+ * @file       signal_range.c
+ * @brief      自动生成的设备测点默认值及范围管理，请勿手工修改
+ * @version    V1.0.0
+ * @date       <%~ it.date %>
+ * @author     Ryan
+ * Copyright   1997-2030 SUNGROW.All Rights Reserved.
+ ***********************************************************************/
+#include "signal_range.h"
+
+#include "collect_lib.h"
+#include "globalfunction.h"
+#include "local_equip.h"
+#include "pub_sig_def.h"
+#include "signal_id_map.h"
+
+typedef struct
+{
+    UINT8 is_recover;
+    UINT16 sig_id;
+    DATA_U def_value;
+    DATA_U min_value;
+    DATA_U max_value;
+    DATA_TYPE_E data_type;
+    UINT32 data_size;
+} SIGNAL_RANGE_ITEM_S;
+
+/* 按实际数字 sig_id 升序生成，供 signal_range_find() 二分查找。 */
+static const SIGNAL_RANGE_ITEM_S g_local_range_table[] = {
+<% it.localRows.forEach((row) => { %>    /* <%~ row.description %>（UPM单板测点第 <%~ row.excelRow %> 行，数字 ID：<%~ row.numericSigId %>） */
+    {.sig_id = <%~ row.sigId %>, .is_recover = <%~ row.isRecover %>, .data_type = <%~ row.dataType %>, .data_size = <%~ row.dataSize %><%~ row.defaultInitializer %><%~ row.minInitializer %><%~ row.maxInitializer %>},
+<% }) %>};
+
+/* DSP1～DSP8 共用同一张范围表，同样按实际数字 sig_id 升序生成。 */
+static const SIGNAL_RANGE_ITEM_S g_dsp_range_table[] = {
+<% it.dspRows.forEach((row) => { %>    /* <%~ row.description %>（UPM-DSP采集数据第 <%~ row.excelRow %> 行，数字 ID：<%~ row.numericSigId %>） */
+    {.sig_id = <%~ row.sigId %>, .is_recover = <%~ row.isRecover %>, .data_type = <%~ row.dataType %>, .data_size = <%~ row.dataSize %><%~ row.defaultInitializer %><%~ row.minInitializer %><%~ row.maxInitializer %>},
+<% }) %>};
+
+/**
+ * @brief 选择设备范围表，并按测点 ID 执行二分查找
+ * @note 两张自动生成表必须保持按实际数字 sig_id 升序排列。
+ */
+static const SIGNAL_RANGE_ITEM_S *signal_range_find(UINT16 dev_id, UINT16 sig_id)
+{
+    const SIGNAL_RANGE_ITEM_S *range_table;
+    UINT16 range_count;
+    INT32 left;
+    INT32 right;
+
+    switch (dev_id)
+    {
+        case CFG_DEV_LOCAL:
+            range_table = g_local_range_table;
+            range_count = (UINT16)(sizeof(g_local_range_table) / sizeof(g_local_range_table[0]));
+            break;
+
+        case CFG_DEV_DSP1:
+        case CFG_DEV_DSP2:
+        case CFG_DEV_DSP3:
+        case CFG_DEV_DSP4:
+        case CFG_DEV_DSP5:
+        case CFG_DEV_DSP6:
+        case CFG_DEV_DSP7:
+        case CFG_DEV_DSP8:
+            range_table = g_dsp_range_table;
+            range_count = (UINT16)(sizeof(g_dsp_range_table) / sizeof(g_dsp_range_table[0]));
+            break;
+
+        default:
+            return NULL;
+    }
+
+    left = 0;
+    right = (INT32)range_count - 1;
+    while (left <= right)
+    {
+        INT32 middle = left + ((right - left) / 2);
+        UINT16 current_sig_id = range_table[middle].sig_id;
+
+        if (sig_id < current_sig_id)
+        {
+            right = middle - 1;
+        }
+        else if (sig_id > current_sig_id)
+        {
+            left = middle + 1;
+        }
+        else
+        {
+            return &range_table[middle];
+        }
+    }
+    return NULL;
+}
+
+INT32 signal_range_get(
+    UINT16 dev_id,
+    UINT16 sig_id,
+    DM_SIG_DATA_S *range_data,
+    BOOLEAN *recover)
+{
+    const SIGNAL_RANGE_ITEM_S *range_item;
+
+    if ((range_data == NULL) || (recover == NULL))
+    {
+        return MPP_RET_ERR;
+    }
+
+    *recover = FALSE;
+    range_item = signal_range_find(dev_id, sig_id);
+    if (range_item != NULL)
+    {
+        range_data->def_value = range_item->def_value;
+        range_data->min_value = range_item->min_value;
+        range_data->max_value = range_item->max_value;
+    }
+    else
+    {
+        range_data->def_value.u32 = 0;
+        range_data->min_value.u32 = 0;
+        range_data->max_value.u32 = 0;
+    }
+    return MPP_RET_OK;
+}
+
+static VOID signal_range_restore_table(
+    UINT16 dev_id,
+    const SIGNAL_RANGE_ITEM_S *range_table,
+    UINT16 range_count)
+{
+    UINT16 index;
+
+    for (index = 0; index < range_count; index++)
+    {
+        const SIGNAL_RANGE_ITEM_S *range_item = &range_table[index];
+        UINT8 *value;
+
+        if (range_item->is_recover <= 1)
+        {
+            continue;
+        }
+
+        if (range_item->data_type == DATA_TYPE_STRING)
+        {
+            value = (UINT8 *)range_item->def_value.pst;
+        }
+        else
+        {
+            value = (UINT8 *)&range_item->def_value;
+        }
+
+        set_dp_para_value(
+            dev_id,
+            range_item->sig_id,
+            (UINT16)range_item->data_size,
+            value);
+    }
+}
+
+INT32 signal_range_restore_default(VOID)
+{
+    UINT16 dev_id;
+
+    signal_range_restore_table(
+        CFG_DEV_LOCAL,
+        g_local_range_table,
+        (UINT16)(sizeof(g_local_range_table) / sizeof(g_local_range_table[0])));
+
+    for (dev_id = CFG_DEV_DSP1; dev_id <= CFG_DEV_DSP8; dev_id++)
+    {
+        signal_range_restore_table(
+            dev_id,
+            g_dsp_range_table,
+            (UINT16)(sizeof(g_dsp_range_table) / sizeof(g_dsp_range_table[0])));
+    }
+    return MPP_RET_OK;
+}

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <protocol DevCode="<%= it.protocol.devCode %>">
+<% for (const model of it.protocol.models) { -%>
+    <model Name="<%= model.name %>" No="<%= model.no %>" Type="<%= model.type %>">
+<% for (const point of model.points) { -%>
+      <point DataName="<%~ point.dataName %>" RegLen="<%= point.regLen %>" OffsetAddr="<%= point.offsetAddr %>" OutDataType="<%= point.outDataType %>" RwMode="<%= point.rwMode %>" YXMerge="<%= point.yxMerge %>" ChgUpload="<%= point.chgUpload %>" />
+<% } -%>
+    </model>
+<% } -%>
+  </protocol>
+</root>

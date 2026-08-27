@@ -89,6 +89,16 @@ function cleanComment(value) {
   return cellText(value).replace(/\*\//g, '* /').replace(/[\r\n]+/g, ' ');
 }
 
+function xmlAttribute(value) {
+  return cellText(value)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/\r\n|\r|\n/g, '&#10;');
+}
+
 function toUpperSnake(value, sheetName, row, fieldName = 'ENMU') {
   const source = cellText(value);
   const result = source
@@ -154,6 +164,54 @@ function mapRwMode(value, sheetName, row) {
   return result;
 }
 
+function mapXmlDataType(value, sheetName, row) {
+  // UPP slave XML 的 OutDataType 使用协议规定的数字类型编码。
+  const source = cellText(value).toUpperCase();
+  const result = { U8: 2, S16: 3, U16: 4, S32: 5, U32: 6, F32: 6, STRING: 12 }[source];
+  if (result === undefined) throw new Error(`${sheetName}!${row} 的 XML 数据类型不受支持：${source || '<空>'}`);
+  return result;
+}
+
+function mapXmlRwMode(value, sheetName, row) {
+  const source = cellText(value).toUpperCase();
+  const result = { RO: 'R', RW: 'RW', WO: 'W' }[source];
+  if (!result) throw new Error(`${sheetName}!${row} 的 XML 读写权限不受支持：${source || '<空>'}`);
+  return result;
+}
+
+function parseXmlProtocol(workbook) {
+  const sheetName = 'UPM-DSP采集数据';
+  const rows = makeSheetReader(workbook, sheetName).rows({
+    description: ['数据定义'], dataType: ['数据类型'], dataLength: ['数据长度'],
+    uppAddress: ['UPP地址'], uppOffset: ['UPP偏移'], rwMode: ['读写权限'],
+  });
+  const groups = new Map();
+  for (const row of rows) {
+    if (!cellText(row.description)) continue;
+    const modelNo = requiredInteger(row.uppAddress, sheetName, row.excelRow, 'UPP地址', { min: 1 });
+    const point = {
+      // slave XML 面向人工查看，DataName 使用 Excel 的中文“数据定义”。
+      dataName: xmlAttribute(row.description),
+      regLen: requiredInteger(row.dataLength, sheetName, row.excelRow, '数据长度', { min: 1 }),
+      offsetAddr: requiredInteger(row.uppOffset, sheetName, row.excelRow, 'UPP偏移'),
+      outDataType: mapXmlDataType(row.dataType, sheetName, row.excelRow),
+      rwMode: mapXmlRwMode(row.rwMode, sheetName, row.excelRow),
+      yxMerge: 0,
+      chgUpload: 0,
+    };
+    if (!groups.has(modelNo)) groups.set(modelNo, []);
+    const points = groups.get(modelNo);
+    if (points.some((item) => item.offsetAddr === point.offsetAddr)) {
+      throw new Error(`${sheetName}!${row.excelRow} 的 UPP 模型 ${modelNo} 中 OffsetAddr ${point.offsetAddr} 重复`);
+    }
+    points.push(point);
+  }
+  return {
+    devCode: 2,
+    models: [...groups.entries()].map(([no, points]) => ({ name: no, no, type: 'YC', points })),
+  };
+}
+
 function parseCollect(workbook) {
   // collect 全部来自“UPM-DSP采集数据”，并按照 UPP地址分组。
   const sheetName = 'UPM-DSP采集数据';
@@ -162,6 +220,20 @@ function parseCollect(workbook) {
     uppAddress: ['UPP地址'], uppOffset: ['UPP偏移'], rwMode: ['读写权限'], requestCycle: ['UPP轮询间隔'],
     setPriority: ['设置优先级'], scanPriority: ['轮询优先级'], sigId: ['signID', 'sigID'],
   });
+  const autoSigIdStart = 30000;
+  const generatedRows = rows.filter((row) => cellText(row.description));
+  const autoSigIdCount = generatedRows.filter((row) => isInvalidSignalId(row.sigId)).length;
+  const autoSigIdEnd = autoSigIdStart + autoSigIdCount - 1;
+  for (const row of generatedRows) {
+    const sigIdText = cellText(row.sigId);
+    if (/^\d+$/.test(sigIdText)) {
+      const sigId = Number(sigIdText);
+      if (sigId >= autoSigIdStart && sigId <= autoSigIdEnd) {
+        throw new Error(`${sheetName}!${row.excelRow} 的有效 signID ${sigId} 与自动编号区间 ${autoSigIdStart}～${autoSigIdEnd} 冲突`);
+      }
+    }
+  }
+  let nextAutoSigId = autoSigIdStart;
   const groups = new Map();
   for (const row of rows) {
     if (!cellText(row.description)) continue;
@@ -171,8 +243,8 @@ function parseCollect(workbook) {
       excelRow: row.excelRow, description: cleanComment(row.description),
       offset: requiredInteger(row.uppOffset, sheetName, row.excelRow, 'UPP偏移'), dataLength,
       dataType: `UPP_DATA_TYPE_${mapDataType(row.dataType, sheetName, row.excelRow)}`,
-      // collect 不丢弃无效 signID 行，而是保留测点并把 sig_id 设置为 0。
-      sigId: isInvalidSignalId(row.sigId) ? '0' : toUpperSnake(row.enumName, sheetName, row.excelRow),
+      // 无有效 signID 的测点按 Excel 行顺序从 30000 开始连续编号。
+      sigId: isInvalidSignalId(row.sigId) ? String(nextAutoSigId++) : toUpperSnake(row.enumName, sheetName, row.excelRow),
       rwMode: mapRwMode(row.rwMode, sheetName, row.excelRow),
       setPriority: optionalInteger(row.setPriority, 0, sheetName, row.excelRow, '设置优先级'),
       scanPriority: optionalInteger(row.scanPriority, 0, sheetName, row.excelRow, '轮询优先级'),
@@ -183,7 +255,13 @@ function parseCollect(workbook) {
     groups.get(modelId).rows.push(item);
   }
   const groupList = [...groups.values()];
-  return { groups: groupList, rowCount: groupList.reduce((count, group) => count + group.rows.length, 0) };
+  return {
+    groups: groupList,
+    rowCount: groupList.reduce((count, group) => count + group.rows.length, 0),
+    autoSigIdCount,
+    autoSigIdStart,
+    autoSigIdEnd,
+  };
 }
 
 function parseProcessRows(workbook, config) {
@@ -226,18 +304,19 @@ function mapDeviceId(value, sheetName, row) {
   throw new Error(`${sheetName}!${row} 的“北向二级分类”不受支持：${category || '<空>'}`);
 }
 
-function mapRegisterType(value, sheetName, row) {
-  const source = cellText(value).toLowerCase();
-  if (source === '3x') return '0x04';
-  if (source === '4x') return '0x03';
-  throw new Error(`${sheetName}!${row} 的“寄存器类型”必须是 3x 或 4x，当前值：${source || '<空>'}`);
+function mapAccessMode(value, sheetName, row) {
+  // Modbus 功能码直接根据读写权限决定，不再依赖 Excel 的“寄存器类型”列。
+  const source = cellText(value).toUpperCase();
+  if (source === 'RO') return '0x04';
+  if (source === 'RW') return '0x03';
+  throw new Error(`${sheetName}!${row} 的“读/写”必须是 RO 或 RW，当前值：${source || '<空>'}`);
 }
 
 function parseTransmit(workbook) {
   // transmit 直接读取“iconfig使用”的计算结果，无效 sigID 行不生成。
   const sheetName = 'iconfig使用';
   const rows = makeSheetReader(workbook, sheetName).rows({
-    category: ['北向二级分类'], description: ['定义'], registerType: ['寄存器类型'],
+    category: ['北向二级分类'], description: ['定义'], accessMode: ['读/写', '读写权限'],
     registerAddress: ['寄存器地址'], registerLength: ['寄存器长度'], sigId: ['sigID', 'signID'],
   });
   const result = [];
@@ -247,7 +326,7 @@ function parseTransmit(workbook) {
       excelRow: row.excelRow, description: cleanComment(row.description),
       deviceId: mapDeviceId(row.category, sheetName, row.excelRow),
       sigId: toUpperSnake(row.sigId, sheetName, row.excelRow, 'sigID'),
-      registerType: mapRegisterType(row.registerType, sheetName, row.excelRow),
+      registerType: mapAccessMode(row.accessMode, sheetName, row.excelRow),
       registerAddress: requiredInteger(row.registerAddress, sheetName, row.excelRow, '寄存器地址'),
       registerLength: requiredInteger(row.registerLength, sheetName, row.excelRow, '寄存器长度', { min: 1 }),
     });
@@ -291,6 +370,115 @@ function parseEnums(workbook) {
   return { localRows, dspRows };
 }
 
+/**
+ * 读取“平台公共测点映射表”，建立 C 枚举名到实际数字 signID 的映射。
+ * 相同枚举重复出现且数值相同是允许的；同名不同值会立即报错。
+ */
+function parsePlatformSignalMap(workbook) {
+  const sheetName = '平台公共测点映射表';
+  const rows = makeSheetReader(workbook, sheetName).rows({
+    name: ['平台测点枚举'], value: ['平台测点值'],
+  });
+  const result = new Map();
+  for (const row of rows) {
+    const name = cellText(row.name);
+    const valueText = cellText(row.value);
+    if (!name && !valueText) continue;
+    const value = requiredInteger(row.value, sheetName, row.excelRow, '平台测点值', { min: 1 });
+    const existing = result.get(name);
+    if (existing !== undefined && existing !== value) {
+      throw new Error(`${sheetName}!${row.excelRow} 的 ${name} 同时映射到 ${existing} 和 ${value}`);
+    }
+    result.set(name, value);
+  }
+  return result;
+}
+
+function rangeTypeInfo(value, sheetName, row) {
+  const source = cellText(value).toUpperCase();
+  const result = {
+    U8: { dataType: 'DATA_TYPE_U8', member: 'u8', dataSize: 'sizeof(UINT8)', string: false },
+    U16: { dataType: 'DATA_TYPE_U16', member: 'u16', dataSize: 'sizeof(UINT16)', string: false },
+    S16: { dataType: 'DATA_TYPE_S16', member: 's16', dataSize: 'sizeof(INT16)', string: false },
+    U32: { dataType: 'DATA_TYPE_U32', member: 'u32', dataSize: 'sizeof(UINT32)', string: false },
+    S32: { dataType: 'DATA_TYPE_S32', member: 's32', dataSize: 'sizeof(INT32)', string: false },
+    // signal_range 使用浮点类型保存 F32 的默认值和上下限。
+    F32: { dataType: 'DATA_TYPE_FLOAT', member: 'f32', dataSize: 'sizeof(FLOAT)', string: false },
+    STRING: { dataType: 'DATA_TYPE_STRING', member: 'pst', dataSize: null, string: true },
+  }[source];
+  if (!result) throw new Error(`${sheetName}!${row} 的数据类型不受支持：${source || '<空>'}`);
+  return result;
+}
+
+function cStringLiteral(value) {
+  return JSON.stringify(cellText(value)).replace(/\\u2028|\\u2029/g, '');
+}
+
+function optionalRangeInitializer(field, value, typeInfo, sheetName, row) {
+  if (isUnconfiguredValue(value)) return '';
+  if (typeInfo.string) return `, .${field}.pst = (VOID *)${cStringLiteral(value)}`;
+  return `, .${field}.${typeInfo.member} = ${cToken(value, null, sheetName, row, field)}`;
+}
+
+function parseRangeRows(workbook, config, platformSignalMap) {
+  const rows = makeSheetReader(workbook, config.sheetName).rows({
+    description: ['数据定义'], enumName: ['ENMU'], sigId: ['signID', 'sigID'],
+    dataType: ['数据类型'], dataLength: ['数据长度'], defaultValue: ['默认值'],
+    minValue: ['数据下限'], maxValue: ['数据上限'],
+  });
+  const uniqueByNumericId = new Map();
+  for (const row of rows) {
+    const rawSigId = cellText(row.sigId);
+    if (!cellText(row.description) || isInvalidSignalId(rawSigId)) continue;
+    // 范围表只保存至少配置了一个范围值的测点。
+    // 默认值、最小值、最大值全部未配置时，即使 signID 有效也跳过整行。
+    if (
+      isUnconfiguredValue(row.defaultValue) &&
+      isUnconfiguredValue(row.minValue) &&
+      isUnconfiguredValue(row.maxValue)
+    ) continue;
+
+    let numericSigId;
+    if (/^\d+$/.test(rawSigId)) numericSigId = Number(rawSigId);
+    else numericSigId = platformSignalMap.get(rawSigId);
+    if (!Number.isInteger(numericSigId) || numericSigId < 1) {
+      throw new Error(`${config.sheetName}!${row.excelRow} 的 signID“${rawSigId}”未在平台公共测点映射表中找到`);
+    }
+
+    const enumName = toUpperSnake(row.enumName, config.sheetName, row.excelRow);
+    const typeInfo = rangeTypeInfo(row.dataType, config.sheetName, row.excelRow);
+    const item = {
+      excelRow: row.excelRow,
+      description: cleanComment(row.description),
+      numericSigId,
+      sigId: enumName,
+      isRecover: isUnconfiguredValue(row.defaultValue) ? 0 : 6,
+      dataType: typeInfo.dataType,
+      dataSize: typeInfo.string
+        ? requiredInteger(row.dataLength, config.sheetName, row.excelRow, '数据长度', { min: 1 })
+        : typeInfo.dataSize,
+      defaultInitializer: optionalRangeInitializer('def_value', row.defaultValue, typeInfo, config.sheetName, row.excelRow),
+      minInitializer: optionalRangeInitializer('min_value', row.minValue, typeInfo, config.sheetName, row.excelRow),
+      maxInitializer: optionalRangeInitializer('max_value', row.maxValue, typeInfo, config.sheetName, row.excelRow),
+    };
+
+    const existing = uniqueByNumericId.get(numericSigId);
+    if (existing && existing.sigId !== item.sigId) {
+      throw new Error(`signID 数字 ${numericSigId} 同时对应 ${existing.sigId} 和 ${item.sigId}`);
+    }
+    if (!existing) uniqueByNumericId.set(numericSigId, item);
+  }
+  return [...uniqueByNumericId.values()].sort((left, right) => left.numericSigId - right.numericSigId);
+}
+
+function parseSignalRange(workbook) {
+  const platformSignalMap = parsePlatformSignalMap(workbook);
+  return {
+    localRows: parseRangeRows(workbook, { sheetName: 'UPM单板测点' }, platformSignalMap),
+    dspRows: parseRangeRows(workbook, { sheetName: 'UPM-DSP采集数据' }, platformSignalMap),
+  };
+}
+
 function parseArguments(argv) {
   const options = { file: DEFAULT_EXCEL, output: DEFAULT_OUTPUT };
   for (let i = 0; i < argv.length; i += 1) {
@@ -327,6 +515,8 @@ async function main() {
   const processData = parseProcess(workbook);
   const transmitRows = parseTransmit(workbook);
   const enums = parseEnums(workbook);
+  const signalRange = parseSignalRange(workbook);
+  const xmlProtocol = parseXmlProtocol(workbook);
   const date = new Intl.DateTimeFormat('zh-CN', { timeZone: 'Asia/Shanghai' }).format(new Date());
   // C 代码对换行和反斜杠续行很敏感，因此禁用 Eta 的自动换行裁剪。
   const eta = new Eta({ autoEscape: false, autoTrim: false });
@@ -335,6 +525,8 @@ async function main() {
     'collect.c': await renderTemplate(eta, 'collect.c.eta', { date, ...collect }),
     'process.c': await renderTemplate(eta, 'process.c.eta', { date, ...processData }),
     'transmit.c': await renderTemplate(eta, 'transmit.c.eta', { date, rows: transmitRows }),
+    'signal_range.c': await renderTemplate(eta, 'signal_range.c.eta', { date, ...signalRange }),
+    'AIDC_UPP_slave.xml': await renderTemplate(eta, 'protocol.xml.eta', { protocol: xmlProtocol }),
   };
   // 模板渲染完成后再次确认 Excel 未变化，然后只写 output 目录。
   await assertSourceUnchanged(filePath, snapshot);
@@ -344,9 +536,12 @@ async function main() {
   await assertSourceUnchanged(filePath, snapshot);
   console.log(`Excel SHA-256：${snapshot.sha256}`);
   console.log(`collect.c：${collect.rowCount} 条，${collect.groups.length} 个 UPP 模型`);
+  if (collect.autoSigIdCount > 0) console.log(`collect.c 自动 sig_id：${collect.autoSigIdStart}～${collect.autoSigIdEnd}，共 ${collect.autoSigIdCount} 条`);
   console.log(`process.c：ARM ${processData.armRows.length} 条，DSP ${processData.dspRows.length} 条`);
   console.log(`transmit.c：${transmitRows.length} 条`);
   console.log(`signal_id_map.h：LOCAL ${enums.localRows.length} 项，DSP ${enums.dspRows.length} 项`);
+  console.log(`signal_range.c：LOCAL ${signalRange.localRows.length} 条，DSP ${signalRange.dspRows.length} 条`);
+  console.log(`AIDC_UPP_slave.xml：${xmlProtocol.models.length} 个模型，${xmlProtocol.models.reduce((sum, model) => sum + model.points.length, 0)} 个点位`);
   console.log(`输出目录：${outputDir}`);
 }
 
@@ -357,4 +552,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseCollect, parseProcess, parseTransmit, parseEnums, toUpperSnake };
+module.exports = { parseCollect, parseProcess, parseTransmit, parseEnums, parseSignalRange, parseXmlProtocol, toUpperSnake };

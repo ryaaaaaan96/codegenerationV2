@@ -2,7 +2,7 @@
  * @file       process.c
  * @brief      自动生成的信号处理表，请勿手工修改
  * @version    V1.0.0
- * @date       2026/8/17
+ * @date       2026/8/27
  * @author     Ryan
  * Copyright   1997-2030 SUNGROW.All Rights Reserved.
  ***********************************************************************/
@@ -369,7 +369,7 @@ const DM_SIG_CFG_S g_arm_data_table[] = {
      .data_type = DATA_TYPE_U32, .pf_sig_proc = property_prtol_3X_2569_2575},
     /* 北向 上传固件版本数量2581 3x  LOCAL_SIG_2581（Excel 第 120 行） */
     {.sig_id = LOCAL_SIG_2581, .sig_size = 2, .sig_flag = ((PARA_UNSTOR_UNSET | FLAG_READ_CALLBACK)),
-     .data_type = DATA_TYPE_U32, .pf_sig_proc = property_prtol_3X_2581},
+     .data_type = DATA_TYPE_U16, .pf_sig_proc = property_prtol_3X_2581},
     /* 北向 固件版本号1 2582 3x  LOCAL_SIG_VERSION（Excel 第 121 行） */
     {.sig_id = LOCAL_SIG_VERSION, .sig_size = 30, .sig_flag = ((PARA_UNSTOR_UNSET | FLAG_READ_CALLBACK)),
      .data_type = DATA_TYPE_STRING, .pf_sig_proc = property_prtol_3X_2582_2657},

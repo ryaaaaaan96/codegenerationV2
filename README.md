@@ -24,6 +24,8 @@ output/collect.c
 output/process.c
 output/transmit.c
 output/signal_id_map.h
+output/signal_range.c
+output/AIDC_UPP_slave.xml
 ```
 
 其中：
@@ -32,6 +34,8 @@ output/signal_id_map.h
 - `process.c`：ARM 和 DSP 信号处理配置。
 - `transmit.c`：UPM 对外提供的 Modbus 转发表。
 - `signal_id_map.h`：LOCAL 和 DSP 信号枚举与 signID 的映射。
+- `signal_range.c`：LOCAL 和 DSP 测点的默认值、上下限及恢复配置。
+- `AIDC_UPP_slave.xml`：由独立 JSON 协议配置生成的 UPP slave XML。
 
 ## 2. Excel 文件来源与工作表说明
 
@@ -55,7 +59,8 @@ output/signal_id_map.h
 | `UPM-DSP手动配置数据` | UPM ARM 板卡内部使用的手动配置数据 | ARM 内部数据 | ARM 开发人员 | ARM 开发人员 | 源数据 |
 | `UPM-DSP采集数据` | UPM ARM 板卡与 DSP 之间的通信协议数据 | ARM ↔ DSP 通信数据 | ARM-DSP 通讯负责人 | ARM 开发人员、DSP 通信开发人员 | 通信协议数据 |
 | `UPM单板测点` | UPM ARM 板卡对外进行 Modbus 转发的数据，仅包含 ARM 自身部分 | ARM 自身对外数据 | ARM 开发人员 | ARM 开发人员 | 中间文件 |
-| `iconfig使用` | UPM ARM 板卡最终对外提供的 Modbus 通信总表，由 UPM-DSP采集数据和 UPM单板测点直接汇总形成 | ARM + DSP 完整 Modbus 数据 | ARM 开发人员 | 所有需要使用 Modbus 进行开发的人员 | 最终发布/使用文件 |
+| `UPM板内Modbus地址分配` | 统一定义 UPM 板内各功能和模块的 Modbus 地址段 | 板内 Modbus 地址规划 | ARM 开发人员 | ARM 开发人员、Modbus 开发人员 | 地址配置数据 |
+| `iconfig使用` | UPM ARM 板卡最终对外提供的 Modbus 通信总表，由 UPM-DSP采集数据、UPM单板测点和板内 Modbus 地址规划共同形成 | ARM + DSP 完整 Modbus 数据 | ARM 开发人员 | 所有需要使用 Modbus 进行开发的人员 | 最终发布/使用文件 |
 
 ### 2.2 整体数据链路
 
@@ -77,6 +82,9 @@ UPM单板测点 ───────────────────┘
      │
 ARM 自身测点
 
+UPM板内Modbus地址分配 ─────────┘
+     提供各功能和模块的地址段起点
+
 
 ARM 侧另外维护
 ────────────────────────────────────
@@ -85,7 +93,9 @@ UPM-DSP手动配置数据
      └── ARM 内部配置使用，并为需要上传 CSU 的 DSP 测点补充配置
 ```
 
-简单来说：`UPM-DSP采集数据` 提供 DSP 数据，`UPM单板测点` 提供 ARM 自身数据，两部分直接汇总到 `iconfig使用`，供所有需要进行 Modbus 开发的人员使用。
+简单来说：`UPM-DSP采集数据` 提供 DSP 数据，`UPM单板测点` 提供 ARM 自身数据，`UPM板内Modbus地址分配` 提供地址段基址，最终共同形成 `iconfig使用`，供所有需要进行 Modbus 开发的人员使用。
+
+`UPM板内Modbus地址分配` 包含“地址段功能”“地址段起点”“地址段终点”三列。当前模块地址段从模块1的 `50000～50999` 开始，每个模块占用 1000 个地址，直到模块8的 `57000～57999`。`iconfig使用` 生成 DSP 寄存器地址时，会使用模块的“地址段起点”加上 `UPM-DSP采集数据` 中对应测点的 Modbus 偏移地址。修改地址规划时必须检查地址段是否重叠，并重新核对 `iconfig使用` 的最终地址。
 
 ## 3. 环境准备与基本使用
 
@@ -159,6 +169,7 @@ output/collect.c
 output/process.c
 output/transmit.c
 output/signal_id_map.h
+output/signal_range.c
 ```
 
 指定其他 Excel 或输出目录：
@@ -175,6 +186,24 @@ node .\generate-code.js --help
 
 每次修改 Excel、模板或生成规则后，都重新运行 `pnpm generate`。`output` 中的文件会在下次生成时覆盖，不建议手工修改。
 
+### 3.4 生成 UPP slave XML
+
+XML 已合并到 `generate-code.js`，与 C/H 文件使用同一个 Excel 数据源。执行：
+
+```powershell
+pnpm generate
+```
+
+会同时生成 `output/AIDC_UPP_slave.xml`。XML 数据来自 `UPM-DSP采集数据`：
+
+- `UPP地址` 用作 `<model Name>` 和 `<model No>`，相同地址的测点归入同一模型。
+- 中文“数据定义”、`数据长度`、`UPP偏移` 分别生成 `DataName`、`RegLen`、`OffsetAddr`。
+- `STRING/U16/F32` 分别映射为 `OutDataType=12/4/6`。
+- `RO/RW/WO` 分别映射为 `RwMode=R/RW/W`。
+- 所有具有“数据定义”的测点都会写入 XML，与 `signID` 是否配置无关。
+- `DevCode` 固定为 `2`，模型 `Type` 固定为 `YC`，`YXMerge` 和 `ChgUpload` 固定为 `0`。
+- 同一 UPP 模型出现重复偏移时停止生成并报告 Excel 行号。
+
 ## 4. C 代码生成规则与实现
 
 ### 4.1 Excel 到 C 文件的映射
@@ -186,7 +215,8 @@ node .\generate-code.js --help
 - 所有具有“数据定义”的行都会生成。
 - 按 `UPP地址` 分组，生成 `g_dsp_upp_collect_*` 数组。
 - `signID` 有效时，使用 `ENMU` 转换后的枚举名。
-- `signID` 是空值、`0`、`/` 或 `※` 时仍生成，但 `.sig_id` 设置为 `0`。
+- `signID` 是空值、`0`、`/` 或 `※` 时仍生成，并按 Excel 行顺序将 `.sig_id` 从 `30000` 开始连续编号。
+- 自动编号区间与 Excel 中已有的数字 `signID` 重叠时停止生成并报告冲突行。
 - `设置优先级`、`轮询优先级` 等可选整数为 `/` 或 `※` 时使用默认值 `0`。
 
 #### process.c
@@ -205,8 +235,8 @@ node .\generate-code.js --help
 - 无效 `sigID` 行跳过。
 - `北向二级分类 = 系统` 映射为 `CFG_DEV_LOCAL`。
 - `模块1` 到 `模块8` 映射为 `CFG_DEV_DSP1` 到 `CFG_DEV_DSP8`。
-- Modbus `3x` 映射为功能码 `0x04`。
-- Modbus `4x` 映射为功能码 `0x03`。
+- 根据“读/写”列决定 Modbus 功能码：`RO` 映射为 `0x04`。
+- 根据“读/写”列决定 Modbus 功能码：`RW` 映射为 `0x03`。
 - 不使用 `0x10`。
 
 #### signal_id_map.h
@@ -217,6 +247,26 @@ node .\generate-code.js --help
 - 例如 `ParamProductType` 转换为 `PARAM_PRODUCT_TYPE`。
 - 同名同值的枚举只生成一次；同名不同值会报错。
 
+#### signal_range.c
+
+数据来源：
+
+- LOCAL 范围表：`UPM单板测点`
+- DSP 范围表：`UPM-DSP采集数据`
+- LOCAL 的数字 signID 映射：`平台公共测点映射表`
+
+生成规则：
+
+- `signID` 为空、`0`、`/` 或 `※` 的行跳过。
+- 默认值、数据下限、数据上限三项全部没有配置时，整行跳过。
+- `signID` 本身是数字时直接使用；是 C 枚举名时到 `平台公共测点映射表` 查询数字。
+- LOCAL 和 DSP 分别按照最终数字 signID 从小到大排序，以保证二分查找正确。
+- 多行对应同一个数字 signID 和同一个枚举时只生成一次。
+- “默认值”有内容时，`is_recover` 生成 `6`；没有默认值时生成 `0`。
+- 默认值、数据下限、数据上限有内容时才生成对应初始化字段；没有内容时省略，由 C 静态初始化自动补零。
+- Excel 数据类型 `F32` 在范围表中生成 `DATA_TYPE_FLOAT`，数值使用联合体成员 `.f32`。
+- DSP1～DSP8 共用同一张 DSP 范围表。
+
 ### 4.2 模板目录
 
 模板位于：
@@ -226,6 +276,8 @@ templates/collect.c.eta
 templates/process.c.eta
 templates/transmit.c.eta
 templates/signal_id_map.h.eta
+templates/signal_range.c.eta
+templates/protocol.xml.eta
 ```
 
 Eta 模板的常见写法：
@@ -248,8 +300,8 @@ Eta 模板的常见写法：
 2. 使用 `fs.open(filePath, 'r')` 以只读权限打开 Excel。
 3. 读取到内存 `Buffer`，记录大小、修改时间和 SHA-256。
 4. 使用 `xlsx` 解析内存数据。
-5. 调用 `parseCollect`、`parseProcess`、`parseTransmit`、`parseEnums` 整理数据。
-6. 使用 Eta 把数据填入四个模板。
+5. 调用 `parseCollect`、`parseProcess`、`parseTransmit`、`parseEnums`、`parseSignalRange`、`parseXmlProtocol` 整理数据。
+6. 使用 Eta 把数据填入六个模板。
 7. 再次检查源 Excel 是否变化。
 8. 只向指定输出目录写入 C/H 文件。
 9. 输出结束后再次检查 Excel，并打印生成数量。
@@ -264,9 +316,11 @@ Eta 模板的常见写法：
 - process：`parseProcess()`、`parseProcessRows()`
 - transmit：`parseTransmit()`
 - LOCAL/DSP 枚举：`parseEnums()`、`parseEnumRows()`
+- 默认值和范围表：`parseSignalRange()`、`parseRangeRows()`
+- UPP slave XML：`parseXmlProtocol()`、`mapXmlDataType()`、`mapXmlRwMode()`
 - 数据类型：`mapDataType()`
 - 设备分类：`mapDeviceId()`
-- Modbus 类型：`mapRegisterType()`
+- Modbus 功能码：`mapAccessMode()`
 - 空值和占位符：`isUnconfiguredValue()`、`isInvalidSignalId()`
 
 建议修改步骤：

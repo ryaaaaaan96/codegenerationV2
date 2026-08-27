@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <protocol DevCode="2">
+    <model Name="1" No="1" Type="YC">
+      <point DataName="2582" RegLen="30" OffsetAddr="48" OutDataType="12" RwMode="R" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="2" No="2" Type="YC">
+      <point DataName="2516" RegLen="16" OffsetAddr="8" OutDataType="12" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="2524" RegLen="20" OffsetAddr="24" OutDataType="12" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="15" RegLen="20" OffsetAddr="62" OutDataType="12" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="2515" RegLen="2" OffsetAddr="94" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1481" RegLen="2" OffsetAddr="96" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="131" No="131" Type="YC">
+      <point DataName="1001" RegLen="2" OffsetAddr="6" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1002" RegLen="2" OffsetAddr="8" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1003" RegLen="2" OffsetAddr="10" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1004" RegLen="2" OffsetAddr="12" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1005" RegLen="2" OffsetAddr="14" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1006" RegLen="2" OffsetAddr="16" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1007" RegLen="2" OffsetAddr="18" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1008" RegLen="2" OffsetAddr="20" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1009" RegLen="2" OffsetAddr="22" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1010" RegLen="2" OffsetAddr="24" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1011" RegLen="2" OffsetAddr="26" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1012" RegLen="2" OffsetAddr="28" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1013" RegLen="2" OffsetAddr="30" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1014" RegLen="2" OffsetAddr="32" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1015" RegLen="2" OffsetAddr="34" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1016" RegLen="2" OffsetAddr="36" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1017" RegLen="2" OffsetAddr="38" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1018" RegLen="2" OffsetAddr="40" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1019" RegLen="2" OffsetAddr="42" OutDataType="3" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1020" RegLen="2" OffsetAddr="44" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1021" RegLen="2" OffsetAddr="46" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1022" RegLen="2" OffsetAddr="48" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1023" RegLen="4" OffsetAddr="50" OutDataType="6" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1024" RegLen="2" OffsetAddr="54" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1025" RegLen="2" OffsetAddr="56" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1026" RegLen="2" OffsetAddr="58" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1032" RegLen="2" OffsetAddr="60" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1027" RegLen="2" OffsetAddr="62" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1028" RegLen="2" OffsetAddr="64" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1029" RegLen="2" OffsetAddr="66" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1030" RegLen="2" OffsetAddr="68" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1031" RegLen="2" OffsetAddr="70" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1033" RegLen="2" OffsetAddr="72" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1034" RegLen="2" OffsetAddr="74" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="132" No="132" Type="YC">
+      <point DataName="1041" RegLen="2" OffsetAddr="6" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1042" RegLen="2" OffsetAddr="8" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1043" RegLen="2" OffsetAddr="10" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1044" RegLen="2" OffsetAddr="12" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1045" RegLen="2" OffsetAddr="14" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1046" RegLen="2" OffsetAddr="16" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1047" RegLen="2" OffsetAddr="18" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1048" RegLen="2" OffsetAddr="20" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="133" No="133" Type="YC">
+      <point DataName="1201" RegLen="2" OffsetAddr="6" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1202" RegLen="2" OffsetAddr="8" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1203" RegLen="2" OffsetAddr="10" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1204" RegLen="2" OffsetAddr="12" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1205" RegLen="2" OffsetAddr="14" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1206" RegLen="2" OffsetAddr="16" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1207" RegLen="2" OffsetAddr="18" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1208" RegLen="2" OffsetAddr="20" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1209" RegLen="2" OffsetAddr="22" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1210" RegLen="2" OffsetAddr="24" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1211" RegLen="2" OffsetAddr="26" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1212" RegLen="2" OffsetAddr="28" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1213" RegLen="2" OffsetAddr="30" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1214" RegLen="2" OffsetAddr="32" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1215" RegLen="2" OffsetAddr="34" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1216" RegLen="2" OffsetAddr="36" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1217" RegLen="2" OffsetAddr="38" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1218" RegLen="2" OffsetAddr="40" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1219" RegLen="2" OffsetAddr="42" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1220" RegLen="2" OffsetAddr="44" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1221" RegLen="2" OffsetAddr="46" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1222" RegLen="2" OffsetAddr="48" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1223" RegLen="2" OffsetAddr="50" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1224" RegLen="2" OffsetAddr="52" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1225" RegLen="2" OffsetAddr="54" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1226" RegLen="2" OffsetAddr="56" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1227" RegLen="2" OffsetAddr="58" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1228" RegLen="2" OffsetAddr="60" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1229" RegLen="2" OffsetAddr="62" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1230" RegLen="2" OffsetAddr="64" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1231" RegLen="2" OffsetAddr="66" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1232" RegLen="2" OffsetAddr="68" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1233" RegLen="2" OffsetAddr="70" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1234" RegLen="2" OffsetAddr="72" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1235" RegLen="2" OffsetAddr="74" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1236" RegLen="2" OffsetAddr="76" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1237" RegLen="2" OffsetAddr="78" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="134" No="134" Type="YC">
+      <point DataName="1101" RegLen="2" OffsetAddr="6" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1102" RegLen="2" OffsetAddr="8" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1103" RegLen="2" OffsetAddr="10" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1104" RegLen="2" OffsetAddr="12" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1105" RegLen="2" OffsetAddr="14" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1106" RegLen="2" OffsetAddr="16" OutDataType="4" RwMode="W" YXMerge="0" ChgUpload="0" />
+      <point DataName="1107" RegLen="2" OffsetAddr="18" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1108" RegLen="2" OffsetAddr="20" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1112" RegLen="2" OffsetAddr="22" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1113" RegLen="2" OffsetAddr="24" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1109" RegLen="2" OffsetAddr="40" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1110" RegLen="2" OffsetAddr="42" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1111" RegLen="2" OffsetAddr="44" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="7002" RegLen="2" OffsetAddr="80" OutDataType="4" RwMode="RW" YXMerge="0" ChgUpload="0" />
+    </model>
+    <model Name="135" No="135" Type="YC">
+      <point DataName="1301" RegLen="2" OffsetAddr="6" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1302" RegLen="2" OffsetAddr="8" OutDataType="4" RwMode="R" YXMerge="0" ChgUpload="0" />
+      <point DataName="1303" RegLen="2" OffsetAddr="10" OutDataType="4" RwMode="W" YXMerge="0" ChgUpload="0" />
+      <point DataName="1304" RegLen="2" OffsetAddr="12" OutDataType="4" RwMode="W" YXMerge="0" ChgUpload="0" />
+      <point DataName="1305" RegLen="2" OffsetAddr="20" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1306" RegLen="2" OffsetAddr="22" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1307" RegLen="2" OffsetAddr="24" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1308" RegLen="2" OffsetAddr="26" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1309" RegLen="2" OffsetAddr="28" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1310" RegLen="2" OffsetAddr="30" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1311" RegLen="2" OffsetAddr="32" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1312" RegLen="2" OffsetAddr="34" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1313" RegLen="2" OffsetAddr="36" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1314" RegLen="2" OffsetAddr="38" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1315" RegLen="2" OffsetAddr="40" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1316" RegLen="2" OffsetAddr="42" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1317" RegLen="2" OffsetAddr="44" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1318" RegLen="2" OffsetAddr="46" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1319" RegLen="2" OffsetAddr="48" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1320" RegLen="2" OffsetAddr="50" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1321" RegLen="2" OffsetAddr="52" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1322" RegLen="2" OffsetAddr="54" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1323" RegLen="2" OffsetAddr="56" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+      <point DataName="1324" RegLen="2" OffsetAddr="58" OutDataType="3" RwMode="RW" YXMerge="0" ChgUpload="0" />
+    </model>
+  </protocol>
+</root>

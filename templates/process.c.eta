@@ -11,6 +11,7 @@
 #include "redirect_lib.h"
 #include "dsp_init.h"
 #include "signal_id_map.h"
+#include "../../../board/dc_ups_port_adapter.h"
 
 const DM_SIG_CFG_S g_arm_data_table[] = {
 <% it.armRows.forEach((row) => { %>    /* <%~ row.description %>  <%~ row.enumName %>（Excel 第 <%~ row.excelRow %> 行） */

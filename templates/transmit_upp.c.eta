@@ -1,0 +1,17 @@
+/* 自动生成：generate-code.js；数据来源：CSU-UPM采集数据。
+ * 由 dev_cfg.c 包含，沿用工程的 UPP 全量表名称。
+ */
+<% it.groups.forEach((group) => { %>
+const UPP_S_SIG_CFG g_dcdc1_vir_upp_transmit_<%~ group.modelId %>[] = {
+<% group.rows.forEach((row) => { %>    /* <%~ row.description %>（Excel 第 <%~ row.excelRow %> 行） */
+    {
+        .dev_id = CFG_DEV_LOCAL, .mod_data_offset = <%~ row.offset %>, .mod_data_len = <%~ row.dataLength %>, .mod_data_type = <%~ row.dataType %>,
+        .data_len = <%~ row.dataLength %>, .data_type = <%~ row.dataType %>, .sig_id = <%~ row.sigId %>,
+        .rw_mode = <%~ row.rwMode %>, .byte_order = UPP_S_BYTE_ORDER_BIG, .chg_upload = 0
+    },
+<% }) %>};
+<% }) %>
+const UPP_S_TBL_MODEL_CFG g_dcdc1_vir_upp_transmit_table[] = {
+<% it.groups.forEach((group) => { %>    {.p_sig_cfg = (UPP_S_SIG_CFG *)g_dcdc1_vir_upp_transmit_<%~ group.modelId %>,
+     .sig_num = ITEM_OF(g_dcdc1_vir_upp_transmit_<%~ group.modelId %>), .model = <%~ group.modelId %>},
+<% }) %>};

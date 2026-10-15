@@ -216,40 +216,41 @@ function parseCollect(workbook) {
   // collect 全部来自“UPM-DSP采集数据”，并按照 UPP地址分组。
   const sheetName = 'UPM-DSP采集数据';
   const rows = makeSheetReader(workbook, sheetName).rows({
-    description: ['数据定义'], enumName: ['ENMU'], dataType: ['数据类型'], dataLength: ['数据长度'], precision: ['精度'],
+    description: ['数据定义'], enumName: ['ENMU'], dataType: ['数据类型'], dataLength: ['数据长度'],
     uppAddress: ['UPP地址'], uppOffset: ['UPP偏移'], rwMode: ['读写权限'], requestCycle: ['UPP轮询间隔'],
     setPriority: ['设置优先级'], scanPriority: ['轮询优先级'], sigId: ['signID', 'sigID'],
   });
+  // 与 DSP 处理点表使用相同筛选条件：有数据定义且 signID 有效时使用枚举。
   const autoSigIdStart = 30000;
-  const generatedRows = rows.filter((row) => cellText(row.description));
-  const autoSigIdCount = generatedRows.filter((row) => isInvalidSignalId(row.sigId)).length;
+  const autoSigIdCount = rows.filter((row) => cellText(row.description) && isInvalidSignalId(row.sigId)).length;
   const autoSigIdEnd = autoSigIdStart + autoSigIdCount - 1;
-  for (const row of generatedRows) {
-    const sigIdText = cellText(row.sigId);
-    if (/^\d+$/.test(sigIdText)) {
-      const sigId = Number(sigIdText);
-      if (sigId >= autoSigIdStart && sigId <= autoSigIdEnd) {
-        throw new Error(`${sheetName}!${row.excelRow} 的有效 signID ${sigId} 与自动编号区间 ${autoSigIdStart}～${autoSigIdEnd} 冲突`);
-      }
+  if (autoSigIdEnd > 65535) throw new Error('DSP 自动信号 ID 已用完（最大 65535）');
+  for (const row of rows) {
+    if (!cellText(row.description) || isInvalidSignalId(row.sigId)) continue;
+    const value = cellText(row.sigId);
+    if (/^\d+$/.test(value)) {
+      const id = Number(value);
+      if (id >= autoSigIdStart && id <= autoSigIdEnd) throw new Error(`${sheetName}!${row.excelRow} 的 signID ${id} 与自动编号区间 ${autoSigIdStart}～${autoSigIdEnd} 冲突`);
     }
   }
-  let nextAutoSigId = autoSigIdStart;
+  let nextId = autoSigIdStart;
   const groups = new Map();
   for (const row of rows) {
     if (!cellText(row.description)) continue;
     const modelId = requiredInteger(row.uppAddress, sheetName, row.excelRow, 'UPP地址', { min: 1 });
     const dataLength = requiredInteger(row.dataLength, sheetName, row.excelRow, '数据长度', { min: 1 });
+    const sigId = isInvalidSignalId(row.sigId) ? String(nextId++) : toUpperSnake(row.enumName, sheetName, row.excelRow);
     const item = {
       excelRow: row.excelRow, description: cleanComment(row.description),
       offset: requiredInteger(row.uppOffset, sheetName, row.excelRow, 'UPP偏移'), dataLength,
       dataType: `UPP_DATA_TYPE_${mapDataType(row.dataType, sheetName, row.excelRow)}`,
-      // 无有效 signID 的测点按 Excel 行顺序从 30000 开始连续编号。
-      sigId: isInvalidSignalId(row.sigId) ? String(nextAutoSigId++) : toUpperSnake(row.enumName, sheetName, row.excelRow),
+      sigId,
       rwMode: mapRwMode(row.rwMode, sheetName, row.excelRow),
       setPriority: optionalInteger(row.setPriority, 0, sheetName, row.excelRow, '设置优先级'),
       scanPriority: optionalInteger(row.scanPriority, 0, sheetName, row.excelRow, '轮询优先级'),
       requestCycle: optionalInteger(row.requestCycle, 0, sheetName, row.excelRow, 'UPP轮询间隔'),
-      precision: optionalInteger(row.precision, 1, sheetName, row.excelRow, '精度'),
+      // UPP 采集统一按精度 1 传输，不读取 Excel 中可能为 1e-8 等小数的“精度”列。
+      precision: 1,
     };
     if (!groups.has(modelId)) groups.set(modelId, { modelId, rows: [] });
     groups.get(modelId).rows.push(item);
@@ -332,6 +333,51 @@ function parseTransmit(workbook) {
     });
   }
   return result;
+}
+
+function parseTransmitUpp(workbook) {
+  const sheetName = 'CSU-UPM采集数据';
+  const rows = makeSheetReader(workbook, sheetName).rows({
+    source: ['数据来源'], description: ['数据定义'], enumName: ['ENMU'],
+    dataType: ['数据类型'], dataLength: ['数据长度'],
+    uppAddress: ['UPP地址'], uppOffset: ['UPP偏移'], rwMode: ['读写权限'],
+  });
+  const groups = new Map();
+  for (const row of rows) {
+    // CSU 本地处理行不属于 UPM 对外转发表，不能把空地址转换成模型 0。
+    if (!cellText(row.description) || cellText(row.source).toUpperCase() !== 'UPM') continue;
+    const required = {
+      ENMU: row.enumName, 数据类型: row.dataType, 数据长度: row.dataLength,
+      UPP地址: row.uppAddress, UPP偏移: row.uppOffset, 读写权限: row.rwMode,
+    };
+    const missing = Object.entries(required).filter(([, value]) => isUnconfiguredValue(value)).map(([name]) => name);
+    if (missing.length) throw new Error(`${sheetName}!${row.excelRow}（${cellText(row.description)}）缺少必填字段：${missing.join('、')}`);
+    const modelId = requiredInteger(row.uppAddress, sheetName, row.excelRow, 'UPP地址', { min: 1 });
+    const offset = requiredInteger(row.uppOffset, sheetName, row.excelRow, 'UPP偏移');
+    const dataLength = requiredInteger(row.dataLength, sheetName, row.excelRow, '数据长度', { min: 1 });
+    if (modelId > 65535 || offset > 65535 || dataLength > 255) {
+      throw new Error(`${sheetName}!${row.excelRow} 的模型号、偏移或长度超出 UPP 配置字段范围`);
+    }
+    if (!groups.has(modelId)) groups.set(modelId, { modelId, rows: [] });
+    const group = groups.get(modelId);
+    const overlap = group.rows.find((point) => offset < point.offset + point.dataLength && point.offset < offset + dataLength);
+    if (overlap) throw new Error(`${sheetName}!${row.excelRow} 与第 ${overlap.excelRow} 行在 UPP 模型 ${modelId} 中的数据范围重叠`);
+    group.rows.push({
+      excelRow: row.excelRow, description: cleanComment(row.description), offset, dataLength,
+      // CSU signID 属于 CSU 的命名空间；UPM 转发必须使用本地 ENMU。
+      sigId: toUpperSnake(row.enumName, sheetName, row.excelRow),
+      dataType: `UPP_DATA_TYPE_${mapDataType(row.dataType, sheetName, row.excelRow)}`,
+      rwMode: mapRwMode(row.rwMode, sheetName, row.excelRow),
+    });
+  }
+  const groupList = [...groups.values()].sort((a, b) => a.modelId - b.modelId);
+  if (!groupList.length) throw new Error(`${sheetName} 没有可生成的 UPM 测点`);
+  for (const group of groupList) group.rows.sort((a, b) => a.offset - b.offset);
+  return {
+    groups: groupList,
+    incrementGroups: groupList.map((group) => ({ ...group, rows: group.rows.filter((row) => row.rwMode !== 'UPP_MODE_W') })).filter((group) => group.rows.length),
+    rowCount: groupList.reduce((sum, group) => sum + group.rows.length, 0),
+  };
 }
 
 function parseEnumRows(workbook, sheetName) {
@@ -514,6 +560,7 @@ async function main() {
   const collect = parseCollect(workbook);
   const processData = parseProcess(workbook);
   const transmitRows = parseTransmit(workbook);
+  const transmitUpp = parseTransmitUpp(workbook);
   const enums = parseEnums(workbook);
   const signalRange = parseSignalRange(workbook);
   const xmlProtocol = parseXmlProtocol(workbook);
@@ -525,6 +572,7 @@ async function main() {
     'collect.c': await renderTemplate(eta, 'collect.c.eta', { date, ...collect }),
     'process.c': await renderTemplate(eta, 'process.c.eta', { date, ...processData }),
     'transmit.c': await renderTemplate(eta, 'transmit.c.eta', { date, rows: transmitRows }),
+    'transmit_upp.c': await renderTemplate(eta, 'transmit_upp.c.eta', { date, ...transmitUpp }),
     'signal_range.c': await renderTemplate(eta, 'signal_range.c.eta', { date, ...signalRange }),
     'AIDC_UPP_slave.xml': await renderTemplate(eta, 'protocol.xml.eta', { protocol: xmlProtocol }),
   };
@@ -539,6 +587,7 @@ async function main() {
   if (collect.autoSigIdCount > 0) console.log(`collect.c 自动 sig_id：${collect.autoSigIdStart}～${collect.autoSigIdEnd}，共 ${collect.autoSigIdCount} 条`);
   console.log(`process.c：ARM ${processData.armRows.length} 条，DSP ${processData.dspRows.length} 条`);
   console.log(`transmit.c：${transmitRows.length} 条`);
+  console.log(`transmit_upp.c：${transmitUpp.rowCount} 条，${transmitUpp.groups.length} 个 UPP 模型`);
   console.log(`signal_id_map.h：LOCAL ${enums.localRows.length} 项，DSP ${enums.dspRows.length} 项`);
   console.log(`signal_range.c：LOCAL ${signalRange.localRows.length} 条，DSP ${signalRange.dspRows.length} 条`);
   console.log(`AIDC_UPP_slave.xml：${xmlProtocol.models.length} 个模型，${xmlProtocol.models.reduce((sum, model) => sum + model.points.length, 0)} 个点位`);
@@ -552,4 +601,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { parseCollect, parseProcess, parseTransmit, parseEnums, parseSignalRange, parseXmlProtocol, toUpperSnake };
+module.exports = { parseCollect, parseProcess, parseTransmit, parseTransmitUpp, parseEnums, parseSignalRange, parseXmlProtocol, toUpperSnake };
